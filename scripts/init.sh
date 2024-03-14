@@ -33,10 +33,9 @@ PORT=$3
 echo "Iniciando "$APP" en la ruta "$HOME"  en el puerto "$PORT
 # Compilar la aplicación con Maven
 cd $HOME
-mvn clean package
+./gradlew clean build
 # Iniciar la aplicación Spring Boot en segundo plano
-./mvnw spring-boot:run  -Dspring-boot.run.arguments=--server.port=$PORT > $APP_LOGS/$APP.log 2>&1 &
-
+./gradlew bootRun --args='--server.port='$PORT > $APP_LOGS/$APP.log 2>&1 &
 check_app_status "http://localhost:$PORT" "Gateway"
 
 # Mostrar un mensaje de que la aplicación está lista
@@ -48,7 +47,7 @@ pwd
 }
 ROOT=$(pwd)
 start_app $APP_HOME_EUREKA $APP_EUREKA $APP_EUREKA_PORT
-cd ROOT
+cd $ROOT
 start_app $APP_HOME_GATEWAY $APP_GATEWAY $APP_GATEWAY_PORT
-cd ROOT
+cd $ROOT
 
