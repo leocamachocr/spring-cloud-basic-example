@@ -1,4 +1,4 @@
-package ucr.sa.gateway.config;
+package dev.leocamacho.gateway.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

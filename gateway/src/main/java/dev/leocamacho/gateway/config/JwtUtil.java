@@ -1,4 +1,4 @@
-package ucr.sa.gateway.config;
+package dev.leocamacho.gateway.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

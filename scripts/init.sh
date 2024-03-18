@@ -1,11 +1,11 @@
 #!/bin/sh
 # Definir la ubicación de la aplicación Spring Boot
 APP_LOGS=../logs
-APP_HOME_GATEWAY=../gateway
+APP_HOME_GATEWAY=gateway
 APP_GATEWAY=gateway
 APP_GATEWAY_PORT=8080
 
-APP_HOME_EUREKA=../eureka
+APP_HOME_EUREKA=eureka
 APP_EUREKA=eureka
 APP_EUREKA_PORT=8761
 
@@ -15,11 +15,11 @@ check_app_status() {
   app=$2
   while true; do
     # shellcheck disable=SC1083
-    if [ "$(curl -s -o /dev/null -w ''%{http_code}'' $url)" = "200" ]; then
+    if [ "$(curl -s -o /dev/null -w ''%{http_code}'' "$url")" = "200" ]; then
       echo "$app"" ha iniciado correctamente en la dirección ""$1"
       break
     else
-      echo "Verificando "$app
+      echo "Verificando ""$app"
       sleep 1
     fi
   done
@@ -33,10 +33,10 @@ PORT=$3
 echo "Iniciando "$APP" en la ruta "$HOME"  en el puerto "$PORT
 # Compilar la aplicación con Maven
 cd $HOME
-./gradlew clean build
+./gradlew clean build > $APP_LOGS/build-$APP.log 2>&1
 # Iniciar la aplicación Spring Boot en segundo plano
 ./gradlew bootRun --args='--server.port='$PORT > $APP_LOGS/$APP.log 2>&1 &
-check_app_status "http://localhost:$PORT" "Gateway"
+check_app_status "http://localhost:$PORT" $HOME
 
 # Mostrar un mensaje de que la aplicación está lista
 echo "La aplicación $APP está lista para recibir solicitudes."
@@ -45,7 +45,9 @@ echo "$APP"":""$PORT""->""$PID"
 
 pwd
 }
+
 ROOT=$(pwd)
+echo "Staring at ""$ROOT"
 start_app $APP_HOME_EUREKA $APP_EUREKA $APP_EUREKA_PORT
 cd $ROOT
 start_app $APP_HOME_GATEWAY $APP_GATEWAY $APP_GATEWAY_PORT
