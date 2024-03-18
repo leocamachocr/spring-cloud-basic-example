@@ -1,4 +1,4 @@
-package ucr.sa.gateway.config;
+package dev.leocamacho.gateway.config;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
