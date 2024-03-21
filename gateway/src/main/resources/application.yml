@@ -10,9 +10,6 @@ spring:
     name: gateway-service
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
       routes:
         - id: basic-service
           uri: lb://basic-service
