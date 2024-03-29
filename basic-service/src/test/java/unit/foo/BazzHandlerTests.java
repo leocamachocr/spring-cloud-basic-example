@@ -2,7 +2,7 @@ package unit.foo;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import dev.leocamacho.basic.foo.BazzHandler;
+import dev.leocamacho.basic.handler.BazzHandler;
 
 import static org.assertj.core.api.Assertions.*;
 
