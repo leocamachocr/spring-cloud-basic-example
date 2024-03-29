@@ -1,4 +1,4 @@
-package dev.leocamacho.basic.foo;
+package dev.leocamacho.basic.handler;
 
 import org.springframework.stereotype.Component;
 

@@ -3,8 +3,8 @@ package unit.bar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import dev.leocamacho.basic.bar.FizzHandler;
-import dev.leocamacho.basic.foo.BazzHandler;
+import dev.leocamacho.basic.handler.FizzHandler;
+import dev.leocamacho.basic.handler.BazzHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;

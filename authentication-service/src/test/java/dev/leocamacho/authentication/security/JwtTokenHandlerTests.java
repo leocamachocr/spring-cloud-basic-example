@@ -1,5 +1,6 @@
-package ucr.sa.authentication.security;
+package dev.leocamacho.authentication.security;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -8,6 +9,8 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class JwtTokenHandlerTests {
 
 
@@ -15,26 +18,7 @@ public class JwtTokenHandlerTests {
     void passwordEncoder() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode("password");
-        System.out.println(encoded);
-        System.out.println(encoder.matches("Password", encoded));
-    }
-
-    @Test
-    void uuidTest() {
-        UUID id = UUID.randomUUID();
-
-        System.out.println(id);
-        System.out.println(UUID.randomUUID());
-        System.out.println(UUID.randomUUID());
-        System.out.println(UUID.randomUUID());
-        System.out.println(UUID.randomUUID());
-
-        User u = new User();
-
-        u.setId(UUID.randomUUID().toString());
-
-        System.out.println(u);
-
+        assertTrue(encoder.matches("Password", encoded));
     }
 
     @Test

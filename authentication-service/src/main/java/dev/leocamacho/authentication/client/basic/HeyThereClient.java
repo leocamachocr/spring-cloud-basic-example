@@ -1,4 +1,4 @@
-package dev.leocamacho.authentication.api.basic;
+package dev.leocamacho.authentication.client.basic;
 
 
 import org.springframework.cloud.openfeign.FeignClient;
