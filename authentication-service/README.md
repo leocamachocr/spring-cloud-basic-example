@@ -1,21 +1,21 @@
-# Servicio de Cliente
+# Authentication Service
 
-La intención de este servicio es servir como ejemplo para la implementación de algunas funcionalidades básicas de cualquier aplicación
+The intention of this service is to serve as an example for the implementation of some basic functionalities of any application
 
-## Autenticación de usuarios
+## User Authentication
 
-Se utiliza el framework de spring-security con autenticación vía JWT, todo esto bajo el paquete `ucr.sa.authentication.security`
+The spring-security framework is used with JWT authentication, all under the `dev.leocamacho.authentication.security` package
 
-- `api`: Endpoints de autenticación y registro.
-- `config`: Configuración de la seguridad, constantes de seguridad y manejo de excepciones de autenticación.
-- `handlers`: Comandos y consultas: Autenticación, Registro y Consulta por username.
-- `http`: Filtro para interceptar e interpretar JWT y Servicio para decodificarlo.
-- `jpa`: Entidades referentes a la seguridad.
-- `models`: Modelos para el manejo de la autenticación y sesiones.
+- `api`: Authentication and registration endpoints.
+- `config`: Security configuration, security constants and authentication exception handling.
+- `handlers`: Commands and queries: Authentication, Registration and Query by username.
+- `http`: Filter to intercept and interpret JWT and Service to decode it.
+- `jpa`: Entities related to security.
+- `models`: Models for handling authentication and sessions.
 
-## Manejo de excepciones
+## Exception Handling
 
-Administrador de excepciones para responder atrevés del api: `ucr.sa.authentication.exceptions`
+Exception manager to respond through the api: `dev.leocamacho.authentication.exceptions`
 
-- `ExceptionResponseHandler`: Controlador de excepciones, las captura y procesa para responder de una manera estandarizada por los errores
-- `ErrorCodes`: Listado de códigos de error, se implementa un código para facilitar la comunicación del tipo de mensaje con los clientes web/mobile.
+- `ExceptionResponseHandler`: Exception controller, captures and processes them to respond in a standardized way for errors
+- `ErrorCodes`: List of error codes, a code is implemented to facilitate the communication of the message type with web/mobile clients.
