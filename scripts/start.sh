@@ -18,6 +18,9 @@ check_app_status() {
 }
 
 cd $APP
+
+mkdir -p $APP_LOGS
+
 ./gradlew clean build > $APP_LOGS/build-$APP-$PORT.log 2>&1
 
 if [ -z "$PORT" ]
