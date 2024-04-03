@@ -63,3 +63,4 @@ target/
 .vscode/
 **/node_modules
 **/.mvn
+!**/gradle-wrapper.jar
