@@ -26,6 +26,6 @@ public class HeyThereController {
     @GetMapping
     public String greeting() {
         logger.info("Session: {}", SessionContextHolder.getSession().correlationId());
-        return String.format("Hello from '% s'!", eurekaClient.getApplication(appName).getName());
+        return String.format("Hello from '%s'!", eurekaClient.getApplication(appName).getName());
     }
 }
