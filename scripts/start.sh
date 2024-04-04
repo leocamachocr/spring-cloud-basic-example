@@ -25,8 +25,8 @@ mkdir -p $APP_LOGS
 
 if [ -z "$PORT" ]
 then
-  ./gradlew bootRun
+  ./gradlew bootRun > $APP_LOGS/$APP.log
 else
   export SERVER_PORT=$PORT
-  ./gradlew bootRun
+  ./gradlew bootRun > $APP_LOGS/$APP-$PORT.log
 fi
