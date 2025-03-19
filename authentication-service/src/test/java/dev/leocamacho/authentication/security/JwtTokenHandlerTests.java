@@ -18,7 +18,7 @@ public class JwtTokenHandlerTests {
     void passwordEncoder() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode("password");
-        assertTrue(encoder.matches("Password", encoded));
+        assertTrue(encoder.matches("password", encoded));
     }
 
     @Test
