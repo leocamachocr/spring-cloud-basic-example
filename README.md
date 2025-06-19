@@ -4,13 +4,15 @@ This repository contains a basic example of a microservices architecture using S
 
 ## How to run it locally
 
-In order to run this services locally you will need to have installed Java 17. Gradle is not required.
+In order to run these services locally you will need to have installed Java 17. Gradle is not required.
 
 There is a [script](scripts/run.sh) that will help you to start the services. You can run it using the following command:
 
 ```shell
 ./scripts/start.sh <service> <port>
+
 ```
+Refer to the [script documentation](docs/how-to-use-start-sh-script.md) for more information about how to use it.
 
 When:
 
@@ -60,11 +62,11 @@ This is the entry point to the system. It's used to route the requests to the co
 
 [Gateway service](https://spring.io/projects/spring-cloud-gateway) is the entry point to the system. It's used to route the requests to the corresponding service. It also handles authorization.
 
-It contains a [filter](gateway/src/main/java/dev/leocamacho/gateway/config/AuthenticationFilter.java) to intercept all the requests and validate the JWT token.It also routes the requests to the corresponding service.This filter is executed before the request is routed to the service.It validates the requested [path](gateway/src/main/java/dev/leocamacho/gateway/config/RouterValidator.java), and if it's a public path, it allows the request to be routed to the service. If it's a private path, it validates the JWT token and then routes the request to the service.
+It contains a [filter](gateway/src/main/java/dev/leocamacho/gateway/config/AuthenticationFilter.java) to intercept all the requests and validate the JWT token.It also routes the requests to the corresponding service. This filter is executed before the request is routed to the service.It validates the requested [path](gateway/src/main/java/dev/leocamacho/gateway/config/RouterValidator.java), and if it's a public path, it allows the request to be routed to the service. If it's a private path, it validates the JWT token and then routes the request to the service.
 
 #### Gateway configuration
 
-Similar to other service, the `build.gradle.kts` file needs to have the following dependencies:
+Similar to other services, the `build.gradle.kts` file needs to have the following dependencies:
 
 ```kotlin
 implementation("org.springframework.cloud:spring-cloud-starter-gateway")
@@ -79,7 +81,7 @@ The configuration of eureka client in application.yml is the same as the other s
 
 ##### Handling REST API requests
 
-As it name suggests, the gateway is the entry point to the system. It's used to route the requests to the corresponding service. It also handles authorizations. To achieve this the gateway has an special configuration to redirect the requests to the corresponding service.
+As its name suggests, the gateway is the entry point to the system. It's used to route the requests to the corresponding service. It also handles authorizations. To achieve this the gateway has an special configuration to redirect the requests to the corresponding service.
 
 ````yml
 spring:

@@ -66,3 +66,5 @@ target/
 !**/gradle-wrapper.jar
 
 **/.gradle/
+
+.env

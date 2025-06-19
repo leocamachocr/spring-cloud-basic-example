@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# === Load .env variables into environment ===
+ENV_FILE=".env"
+if [ -f "$ENV_FILE" ]; then
+  echo "Loadinv environment variables .env..."
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
+
+
 # === Configuration ===
 APP_LOGS=../logs
 APP=$1
@@ -23,11 +31,7 @@ is_windows() {
 is_port_in_use() {
   PORT_TO_CHECK=$1
   if is_windows; then
-    powershell.exe -Command "
-      \$port = $PORT_TO_CHECK
-      \$inUse = Get-NetTCPConnection -State Listen -LocalPort \$port -ErrorAction SilentlyContinue
-      if (\$inUse) { exit 0 } else { exit 1 }
-    "
+    netstat -ano | grep -q ":$PORT_TO_CHECK "
   else
     ss -tuln | grep -q ":$PORT_TO_CHECK" || netstat -tuln | grep -q ":$PORT_TO_CHECK"
   fi
@@ -43,6 +47,17 @@ get_random_free_port() {
     fi
   done
   echo "No free ports available in range 8000-9000"
+  exit 1
+}
+get_random_free_port_for_debug() {
+  for i in $(seq 1 100); do
+    CANDIDATE=$(shuf -i 50000-60000 -n 1)
+    if ! is_port_in_use $CANDIDATE ; then
+      echo $CANDIDATE
+      return
+    fi
+  done
+  echo "No free ports available in range 5000-6000"
   exit 1
 }
 
@@ -94,16 +109,19 @@ else
   echo "Using provided port: $PORT"
 fi
 
+# === Enable remote debugging ===
+DEBUG_PORT=$(get_random_free_port_for_debug)
+echo "Exponiendo puerto de depuración: $DEBUG_PORT"
+
+# PASAR EL PUERTO DE DEPURACIÓN COMO PROPIEDAD DE SISTEMA A GRADLE
+# Esto será capturado por el 'build.gradle' en la sección bootRun { jvmArgs [...] }
+GRADLE_DEBUG_ARGS="-DdebugPort=$DEBUG_PORT"
+
 export SERVER_PORT=$PORT
 RUN_LOG="$APP_LOGS/$APP-$PORT-$TIMESTAMP.log"
 echo "Starting $APP on port $PORT... Logs: $RUN_LOG"
-nohup ./gradlew bootRun > "$RUN_LOG" 2>&1 &
+nohup ./gradlew bootRun "$GRADLE_DEBUG_ARGS" > "$RUN_LOG" 2>&1 &
 echo "$APP started on port $PORT with PID $!"
 
-# === Optional: Expose debug port (random) ===
-DEBUG_PORT=$(get_random_free_port)
-echo "Exposing debug port: $DEBUG_PORT"
-export JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$DEBUG_PORT"
-echo "Debugging is enabled on port $DEBUG_PORT"
 
 check_app_status "http://localhost:$PORT" $APP
