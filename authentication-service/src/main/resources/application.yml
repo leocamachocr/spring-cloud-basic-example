@@ -28,8 +28,10 @@ jwt:
 
 logging:
   level:
-    org.springframework.web: DEBUG
+    org.springframework.web: INFO
     org.hibernate: ERROR
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
 management:
   endpoint:
     health:
@@ -39,3 +41,11 @@ management:
     web:
       exposure:
         include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: B3
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_HOST:localhost}:${ZIPKIN_PORT:9411}/api/v2/spans

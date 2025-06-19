@@ -53,10 +53,5 @@ export JAVA_HOME=/path/to/your/java21
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-
-
-
-
-
 ### Make sure your Spring Cloud is configured
 
