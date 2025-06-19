@@ -20,20 +20,23 @@ spring:
           predicates:
             - Path=/api/public/auth/**, /api/private/auth/**
 logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
 
 management:
   endpoint:
     health:
       probes:
         enabled: true
-  health:
-    livenessState:
-      enabled: true
-    readinessState:
-      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_HOST:localhost}:${ZIPKIN_PORT:9411}/api/v2/spans
 jwt:
   secret: KXiUPknkoVDCHdNrrYnxmA5oQLbv+LE7eHG8vkk71fjEPq0lmlZKwBhUVLUqKSmGam8P4kWxXKTGCDRgpZ5BMA==
