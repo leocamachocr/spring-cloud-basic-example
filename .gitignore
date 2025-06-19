@@ -66,5 +66,5 @@ target/
 !**/gradle-wrapper.jar
 
 **/.gradle/
-
+!zipkin/*.jar
 .env
