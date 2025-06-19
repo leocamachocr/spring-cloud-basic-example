@@ -1,6 +1,8 @@
 package dev.leocamacho.gateway.config;
 
 import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -16,6 +18,7 @@ import java.util.UUID;
 
 @RefreshScope
 public class AuthenticationFilter implements GlobalFilter {
+    Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     private final RouterValidator routerValidator;
     private final JwtUtil jwtUtil;
@@ -66,11 +69,31 @@ public class AuthenticationFilter implements GlobalFilter {
 
     private ServerHttpRequest buildSessionRequest(ServerWebExchange exchange, String token) {
         Claims claims = jwtUtil.getAllClaimsFromToken(token);
-        return exchange.getRequest().mutate()
-                .header("email", String.valueOf(claims.get("email")))
-                .header("id", String.valueOf(claims.get("id")))
-                .header("roles", String.valueOf(claims.get("roles")))
-                .header("correlationId", UUID.randomUUID().toString())
-                .build();
+
+        ServerHttpRequest originalRequest = exchange.getRequest();
+        ServerHttpRequest.Builder requestBuilder = originalRequest.mutate();
+
+        // Headers personalizados (JWT claims)
+        requestBuilder.header("email", String.valueOf(claims.get("email")));
+        requestBuilder.header("id", String.valueOf(claims.get("id")));
+        requestBuilder.header("roles", String.valueOf(claims.get("roles")));
+        requestBuilder.header("correlationId", UUID.randomUUID().toString());
+
+        // Headers de trazabilidad: preservar si ya existen
+        copyTracingHeader(originalRequest, requestBuilder, "X-B3-TraceId");
+        copyTracingHeader(originalRequest, requestBuilder, "X-B3-SpanId");
+        copyTracingHeader(originalRequest, requestBuilder, "X-B3-ParentSpanId");
+        copyTracingHeader(originalRequest, requestBuilder, "X-B3-Sampled");
+        copyTracingHeader(originalRequest, requestBuilder, "X-B3-Flags");
+
+        return requestBuilder.build();
     }
+
+    private void copyTracingHeader(ServerHttpRequest original, ServerHttpRequest.Builder builder, String headerName) {
+        String value = original.getHeaders().getFirst(headerName);
+        if (value != null) {
+            builder.header(headerName, value);
+        }
+    }
+
 }
