@@ -197,3 +197,64 @@ Posibles soluciones para Iteración 3:
 
 #### Riesgos pendientes
 - **R-tracer** (ALTA): `io.micrometer.tracing.Tracer` no se autowiring en authentication-service y gateway bajo Spring Boot 4.x — bloquea el arranque de ambos servicios.
+
+---
+
+### Iteración 3 — Corrección R-tracer: Micrometer Tracing ⚠️
+- Fecha: 2026-03-30
+- Caso en `TraceIdResponseFilter` (authentication-service): **CASO A** — solo propaga `X-B3-TraceId` al response header y loguea el traceId. Sin lógica de negocio.
+- Caso en `TraceIdFilter` (gateway): **CASO A** — ídem, además loguea en `doOnSuccess`. Sin lógica de negocio.
+- Acción en authentication-service: `TraceIdResponseFilter.java` **eliminado** (sin registros externos ni @Bean)
+- Acción en gateway: `TraceIdFilter.java` **eliminado** (sin registros externos ni @Bean)
+- Patrón de logging MDC `%X{traceId:-},%X{spanId:-}`: **ya presente** en ambos `application.yml` — el tracing en logs sigue funcionando automáticamente via Micrometer
+- Dependencias `micrometer-tracing-bridge-brave:1.6.4` y `zipkin-reporter-brave`: resuelven correctamente desde el BOM de Spring Boot 4.0.5
+
+#### Resultado de compilación
+| Módulo                 | Resultado |
+|------------------------|-----------|
+| eureka                 | ✅ BUILD SUCCESSFUL |
+| gateway                | ✅ BUILD SUCCESSFUL |
+| basic-service          | ✅ BUILD SUCCESSFUL |
+| authentication-service | ✅ BUILD SUCCESSFUL |
+
+#### Smoke test de arranque
+| Servicio               | Resultado | Detalle |
+|------------------------|-----------|---------|
+| eureka                 | ✅ OK     | Puerto 8761, 2.8 s |
+| authentication-service | ✅ OK     | Puerto 8083, 5.1 s. Registra en Eureka correctamente. |
+| basic-service          | ✅ OK     | Puerto 8082, 1.9 s. Registra en Eureka correctamente. |
+| gateway                | ❌ FALLA  | Ver detalle abajo |
+
+#### Error de runtime gateway (nuevo — R-eureka-reactive)
+
+```
+java.lang.ClassNotFoundException:
+  org.springframework.boot.web.server.context.WebServerInitializedEvent
+
+Caused by: java.lang.IllegalStateException: Failed to introspect Class
+  [org.springframework.cloud.netflix.eureka.serviceregistry.EurekaAutoServiceRegistration]
+Caused by: java.lang.NoClassDefFoundError:
+  org/springframework/boot/web/server/context/WebServerInitializedEvent
+```
+
+**Causa raíz:** `EurekaAutoServiceRegistration` de Spring Cloud Netflix 2025.1.1 sigue referenciando
+`org.springframework.boot.web.server.context.WebServerInitializedEvent`, clase que fue eliminada
+o movida en Spring Boot 4.x. El error ocurre únicamente en el gateway (stack reactivo/WebFlux);
+authentication-service y basic-service (stack Servlet) no se ven afectados.
+
+**Análisis:** Es una incompatibilidad entre `spring-cloud-starter-netflix-eureka-client` incluido
+en Spring Cloud 2025.1.1 y el stack reactivo de Spring Boot 4.0.5. El cliente Eureka en contexto
+WebFlux intenta escuchar `WebServerInitializedEvent` (o su subclase reactiva) en un paquete que ya
+no existe en Spring Boot 4.x.
+
+**Opciones para Iteración 4:**
+1. Deshabilitar la autoconfiguración de Eureka en el gateway y registrarlo manualmente, o
+2. Excluir `EurekaAutoServiceRegistration` vía `spring.cloud.discovery.enabled=false` +
+   configurar el descubrimiento sin registro, o
+3. Investigar si existe un fix en versiones más recientes de `spring-cloud-starter-netflix-eureka-client`
+
+#### Smoke test funcional
+No ejecutado — gateway no arrancó (puerto 8080 no disponible).
+
+#### Riesgos pendientes
+- **R-eureka-reactive** (ALTA): `EurekaAutoServiceRegistration` incompatible con stack WebFlux en Spring Boot 4.x — `WebServerInitializedEvent` no encontrada. Bloquea el arranque del gateway.
