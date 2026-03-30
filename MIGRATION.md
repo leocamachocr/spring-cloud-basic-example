@@ -108,3 +108,39 @@ Todos los módulos compilan exitosamente con `./gradlew compileJava`.
 - Fecha: 2026-03-30
 - Cambios: ninguno (solo lectura y documentación)
 - Hallazgo clave: el proyecto ya está en las versiones objetivo (Java 21, Spring Boot 3.4.3, Spring Cloud 2024.0.0, Gradle 8.x). Las iteraciones siguientes se enfocarán en resolver los riesgos identificados (especialmente R1 y R6) y validar el comportamiento en runtime.
+
+### Iteración 1 — Actualización de versiones en build files ⚠️
+- Fecha: 2026-03-30
+- Spring Boot: 3.4.3 → 4.0.5
+- Spring Cloud: 2024.0.0 → 2025.1.1
+- Java toolchain: 21 → 25
+- Gradle wrapper: 8.5 → 8.14 (requisito mínimo impuesto por Spring Boot 4.0.x plugin; 8.5 falla al cargar el plugin)
+- spring-security-crypto: versión explícita `6.2.2` eliminada — ahora gestionada por BOM → resuelve a `7.0.4`
+- Repositorio duplicado en gateway: eliminado (`mavenCentral()` doble → uno solo)
+- Gateway artifact renombrado: `spring-cloud-starter-gateway` → `spring-cloud-gateway-server-webflux` (el starter fue retirado en Spring Cloud 2025.1.x)
+
+#### Resultado de compilación por módulo
+| Módulo                 | Resultado | Detalle                                                           |
+|------------------------|-----------|-------------------------------------------------------------------|
+| eureka                 | ✅        | BUILD SUCCESSFUL                                                  |
+| basic-service          | ✅        | BUILD SUCCESSFUL                                                  |
+| authentication-service | ✅        | BUILD SUCCESSFUL (javax.xml.bind:jaxb-api:2.3.0 resuelve pero es riesgo R1 pendiente) |
+| gateway                | ❌        | 1 error de compilación — ver detalle abajo                        |
+
+#### Errores de compilación identificados (para Iteración 2)
+
+**gateway — `AuthenticationFilter.java:67`**
+```
+error: cannot find symbol
+    return !request.getHeaders().containsKey("Authorization");
+                                ^
+  symbol:   method containsKey(String)
+  location: class HttpHeaders
+```
+`HttpHeaders.containsKey(String)` fue eliminado en Spring Framework 7.0.
+`HttpHeaders` ya no implementa `Map<String, List<String>>` directamente.
+El reemplazo es `HttpHeaders.hasHeader(String)` (o `containsHeader(String)` según contexto).
+
+#### Riesgos pendientes para iteraciones siguientes
+- **R1** (ALTA): `javax.xml.bind:jaxb-api:2.3.0` en authentication-service — namespace `javax.*` incompatible con Jakarta EE 9+; compiló pero fallará en runtime. Debe eliminarse o reemplazarse por `jakarta.xml.bind:jakarta.xml.bind-api`.
+- **gateway-R-new** (ALTA): `HttpHeaders.containsKey` → `HttpHeaders.hasHeader` en `AuthenticationFilter.java:67`.
