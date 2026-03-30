@@ -68,3 +68,4 @@ target/
 **/.gradle/
 !zipkin/*.jar
 .env
+/.claude/settings.local.json
