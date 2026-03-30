@@ -258,3 +258,38 @@ No ejecutado — gateway no arrancó (puerto 8080 no disponible).
 
 #### Riesgos pendientes
 - **R-eureka-reactive** (ALTA): `EurekaAutoServiceRegistration` incompatible con stack WebFlux en Spring Boot 4.x — `WebServerInitializedEvent` no encontrada. Bloquea el arranque del gateway.
+
+---
+
+### Iteración 4 — Corrección R-eureka-reactive: gateway WebFlux ✅
+- Fecha: 2026-03-30
+
+#### Cambios aplicados en `gateway/`
+
+| Cambio | Archivo | Detalle |
+|---|---|---|
+| `spring.cloud.service-registry.auto-registration.enabled: false` | `application.yml` | Evita que `EurekaClientAutoConfiguration` instancie `EurekaAutoServiceRegistration` (cuya introspección de clase falla en Spring Boot 4.x porque `WebServerInitializedEvent` fue movida). Primer fix aplicado. |
+| `eureka.client.webclient.enabled: false` | `application.yml` | WebFlux en classpath activa automáticamente el transporte WebClient de Eureka, cuyo `Supplier<WebClient.Builder>` retorna null en el contexto del gateway. Deshabilitarlo fuerza el uso de RestClient, que sí funciona. |
+| `spring-boot-starter-webflux` | `build.gradle.kts` | Requerido por `spring-cloud-gateway-server-webflux` para resolver `HttpHandlerAutoConfiguration` (movida a `spring-boot-autoconfigure-webflux` en Spring Boot 4.x). |
+| Routes movidas a namespace nuevo | `application.yml` | En Spring Cloud 2025.1.x con `spring-cloud-gateway-server-webflux`, las rutas deben estar bajo `spring.cloud.gateway.server.webflux.routes` (antes era `spring.cloud.gateway.routes`). Fix crítico para que el routing funcione. |
+
+#### Smoke test de arranque
+| Servicio               | Resultado | Registrado en Eureka |
+|------------------------|-----------|----------------------|
+| eureka                 | ✅ OK     | N/A                  |
+| authentication-service | ✅ OK     | Sí (puerto 8083)     |
+| basic-service          | ✅ OK     | Sí (puerto 8082)     |
+| gateway                | ✅ OK     | No (por diseño — `register-with-eureka: false`) |
+
+#### Smoke test funcional end-to-end
+| Paso                                  | HTTP Status | Observaciones |
+|---------------------------------------|-------------|---------------|
+| POST /api/public/auth/register        | 200 OK      | Usuario `migration@test.com` creado correctamente |
+| POST /api/public/auth/login           | 200 OK      | JWT HS512 emitido correctamente |
+| GET /api/private/basic CON JWT        | 200 OK      | Respuesta: `Hello from 'BASIC-SERVICE'!` — routing lb:// y AuthenticationFilter funcionan |
+| GET /api/private/basic SIN JWT        | 401         | Respuesta: `Invalid session` — AuthenticationFilter rechaza correctamente |
+
+#### Estado final de la migración
+- ✅ **Migración completa** — todos los servicios compilados y funcionando con Java 25 / Spring Boot 4.0.5 / Spring Cloud 2025.1.1 / Gradle 8.14
+- El flujo completo register → login → endpoint privado con JWT funciona end-to-end
+- Riesgos pendientes: **ninguno** en el path crítico
