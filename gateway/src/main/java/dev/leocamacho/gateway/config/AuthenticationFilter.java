@@ -3,7 +3,6 @@ package dev.leocamacho.gateway.config;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -16,7 +15,6 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-@RefreshScope
 public class AuthenticationFilter implements GlobalFilter {
     Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
@@ -64,7 +62,7 @@ public class AuthenticationFilter implements GlobalFilter {
     }
 
     private boolean isAuthMissing(ServerHttpRequest request) {
-        return !request.getHeaders().containsKey("Authorization");
+        return !request.getHeaders().containsHeader("Authorization");
     }
 
     private ServerHttpRequest buildSessionRequest(ServerWebExchange exchange, String token) {

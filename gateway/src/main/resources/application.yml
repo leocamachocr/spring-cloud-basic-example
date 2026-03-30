@@ -10,6 +10,9 @@ spring:
     name: gateway-service
   cloud:
     gateway:
+      server:
+        webflux:
+          trusted-proxies: ".*"
       routes:
         - id: basic-service
           uri: lb://basic-service

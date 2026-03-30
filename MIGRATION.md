@@ -144,3 +144,56 @@ El reemplazo es `HttpHeaders.hasHeader(String)` (o `containsHeader(String)` seg�
 #### Riesgos pendientes para iteraciones siguientes
 - **R1** (ALTA): `javax.xml.bind:jaxb-api:2.3.0` en authentication-service — namespace `javax.*` incompatible con Jakarta EE 9+; compiló pero fallará en runtime. Debe eliminarse o reemplazarse por `jakarta.xml.bind:jakarta.xml.bind-api`.
 - **gateway-R-new** (ALTA): `HttpHeaders.containsKey` → `HttpHeaders.hasHeader` en `AuthenticationFilter.java:67`.
+
+---
+
+### Iteración 2 — Corrección R1, gateway-R-new y R2 ⚠️
+- Fecha: 2026-03-30
+
+#### Cambios aplicados
+
+| # | Cambio | Archivo | Detalle |
+|---|---|---|---|
+| gateway-R-new | ✅ Resuelto | `AuthenticationFilter.java:67` | `containsHeader("Authorization")` ya estaba aplicado; compilación verificada |
+| R2 | ✅ Resuelto | `AuthenticationFilter.java` | `@RefreshScope` eliminado (y su import) — sin Config Server, el proxy CGLIB es innecesario |
+| trusted-proxies | ✅ Configurado | `gateway/application.yml` | `spring.cloud.gateway.server.webflux.trusted-proxies: ".*"` para entorno local |
+| R1 | ✅ Resuelto (Caso A) | `authentication-service/build.gradle.kts` | `javax.xml.bind:jaxb-api:2.3.0` eliminado — no tenía ningún `import javax.xml.bind.*` en el código fuente; dependencia sin uso real |
+
+#### Resultado final de compilación
+| Módulo                 | Resultado |
+|------------------------|-----------|
+| eureka                 | ✅ BUILD SUCCESSFUL |
+| gateway                | ✅ BUILD SUCCESSFUL |
+| basic-service          | ✅ BUILD SUCCESSFUL |
+| authentication-service | ✅ BUILD SUCCESSFUL |
+
+#### Smoke test de arranque
+| Servicio               | Resultado | Detalle |
+|------------------------|-----------|---------|
+| eureka                 | ✅ OK     | Arranca en 2.3 s, puerto 8761. Aviso INFO sobre Jakarta Bean Validation provider ausente (no crítico). |
+| basic-service          | ✅ OK     | Arranca en 1.9 s, puerto 8082. Errores de heartbeat Eureka esperados (eureka no estaba corriendo en paralelo). |
+| authentication-service | ❌ FALLA  | Ver detalle abajo |
+| gateway                | ❌ FALLA  | Ver detalle abajo |
+
+#### Errores de runtime identificados (para Iteración 3)
+
+**authentication-service y gateway — mismo error raíz**
+
+```
+Field tracer in <FilterClass> required a bean of type 'io.micrometer.tracing.Tracer'
+that could not be found.
+```
+
+- **authentication-service**: `TraceIdResponseFilter` — `@Autowired io.micrometer.tracing.Tracer`
+- **gateway**: `TraceIdFilter` — `@Autowired io.micrometer.tracing.Tracer`
+
+**Causa raíz:** En Spring Boot 4.x la autoconfiguración de Micrometer Tracing / Brave cambió.
+Las dependencias `micrometer-tracing-bridge-brave` + `zipkin-reporter-brave` ya no registran
+automáticamente un bean `Tracer` con las mismas condiciones que en Spring Boot 3.x.
+Posibles soluciones para Iteración 3:
+1. Reemplazar la inyección directa de `Tracer` por `ObservationRegistry` (API pública de Micrometer)
+2. Agregar `spring-boot-starter-actuator` con la dependencia `io.micrometer:micrometer-tracing-bridge-brave` y verificar si el autoconfigure cambia
+3. Eliminar los filtros `TraceIdFilter`/`TraceIdResponseFilter` si la propagación de traceId ya es manejada automáticamente por Micrometer en Spring Boot 4.x
+
+#### Riesgos pendientes
+- **R-tracer** (ALTA): `io.micrometer.tracing.Tracer` no se autowiring en authentication-service y gateway bajo Spring Boot 4.x — bloquea el arranque de ambos servicios.

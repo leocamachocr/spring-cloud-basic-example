@@ -29,7 +29,6 @@ dependencies {
     runtimeOnly("com.h2database:h2")
     implementation("org.springframework.security:spring-security-crypto")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
-    implementation("javax.xml.bind:jaxb-api:2.3.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 }
