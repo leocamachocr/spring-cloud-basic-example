@@ -2,6 +2,11 @@
 
 This repository contains a basic example of a microservices architecture using Spring Cloud.
 
+## Recommended Versions
+
+- Java 25
+- Gradle 9.0.3
+
 ## How to run it locally
 
 In order to run these services locally you will need to have installed Java 17. Gradle is not required.
@@ -12,12 +17,14 @@ There is a [script](scripts/run.sh) that will help you to start the services. Yo
 ./scripts/start.sh <service> <port>
 
 ```
+
 Refer to the [script documentation](docs/how-to-use-start-sh-script.md) for more information about how to use it.
 
 When:
 
 - `service` is the directory name of the service you want to start.
-- `port` is the port where the service will be running. This is optional, but it's recommended to avoid port conflicts. Don't set the port for the Eureka service. By default, Eureka is running on port 8761, and that port is used in the configuration of the other services.
+-
+`port` is the port where the service will be running. This is optional, but it's recommended to avoid port conflicts. Don't set the port for the Eureka service. By default, Eureka is running on port 8761, and that port is used in the configuration of the other services.
 
 ## Architecture
 
@@ -39,7 +46,8 @@ The `build.gradle.kts` file needs to have the following dependencies:
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 ```
 
-It's important to annotate in a configuration file or in the main class the following annotation: `@EnableDiscoveryClient`. This will allow the service to register itself in the Eureka server.
+It's important to annotate in a configuration file or in the main class the following annotation:
+`@EnableDiscoveryClient`. This will allow the service to register itself in the Eureka server.
 
 The last configuration is to set the eureka values to the application configuration file. Pointing out all the eureka server instances comma separated.
 
@@ -73,9 +81,11 @@ implementation("org.springframework.cloud:spring-cloud-starter-gateway")
 implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 ```
 
-In this case there is a new dependency, `spring-cloud-starter-gateway`. This is the library that contains the gateway functionality.
+In this case there is a new dependency,
+`spring-cloud-starter-gateway`. This is the library that contains the gateway functionality.
 
-Also, it's important to annotate in a configuration file or in the main class the following annotation: `@EnableDiscoveryClient`. This will allow the service to register itself in the Eureka server.
+Also, it's important to annotate in a configuration file or in the main class the following annotation:
+`@EnableDiscoveryClient`. This will allow the service to register itself in the Eureka server.
 
 The configuration of eureka client in application.yml is the same as the other services.
 
@@ -105,7 +115,8 @@ In this example, routes are manually defined to expose a standard REST API defin
 
 This is the service registry. It is used to register all the services and to discover them. There is no special code here; it is just a Spring Boot application with the Eureka Server dependency.
 
-It is used to register all the services and discover them. Every service registers itself in the Eureka server. Additionally, it is used to discover other services. For example, the gateway service uses Eureka to discover the basic and authentication services. There is a web console to see the registered services. It is available at `http://localhost:8761/`.
+It is used to register all the services and discover them. Every service registers itself in the Eureka server. Additionally, it is used to discover other services. For example, the gateway service uses Eureka to discover the basic and authentication services. There is a web console to see the registered services. It is available at
+`http://localhost:8761/`.
 
 Here is an example step by step how multiple instance of the same service are registered in Eureka:
 
@@ -122,7 +133,8 @@ If another instance of the same service is registered, Eureka will know the exis
 ![ ](
 https://www.plantuml.com/plantuml/png/dS-npe8m40VmlKznWPdXQpyX8GuCmcgYJr3XeXUX9BtMmQUtAQXH1erRqzxl_lzMxBHrVkY56Ji4z1RF6bAb2hKgfhlae9dQZD5Ug4KeWKn09Xp_4j0CyHdIklwNUVw9o2UHRqPxDrgwQaUZkTD5M1WwFQOWRPgDL8qGS-zrbasxIzWQsC_nyOiCnB338x532y7MaIoa_8M-rlf-WwZGT7xeRm00)
 
-The same process is repeated for the `instance1` of the authentication service. During this process, each Eureka client will notify the Eureka server about its existence using a heartbeat mechanism. If the Eureka server doesn't receive a heartbeat from a service instance for a certain amount of time, it will remove the instance from the registry.
+The same process is repeated for the
+`instance1` of the authentication service. During this process, each Eureka client will notify the Eureka server about its existence using a heartbeat mechanism. If the Eureka server doesn't receive a heartbeat from a service instance for a certain amount of time, it will remove the instance from the registry.
 
 Similarly, depending on requirements, every client will cache the list of services and periodically refresh the list of services from the Eureka server.
 
@@ -143,9 +155,9 @@ curl -X POST \
 http://localhost:8080/api/public/auth/register
 ```
 
-Notice that the endpoint is targeting public paths. This means that the gateway will not validate the JWT token.
-Also, it contains the `auth` path, indicating that this is the authentication service. (This will be something that we will know internally but not the client).
-The password is encoded using a BCrypt algorithm. In this case we are using `spring-security-crypto` library from Spring Security.
+Notice that the endpoint is targeting public paths. This means that the gateway will not validate the JWT token. Also, it contains the
+`auth` path, indicating that this is the authentication service. (This will be something that we will know internally but not the client). The password is encoded using a BCrypt algorithm. In this case we are using
+`spring-security-crypto` library from Spring Security.
 
 #### Login
 
@@ -173,11 +185,13 @@ This key is generated using a SecureRandom algorithm and encoded in Base64. It's
 
 #### Private paths
 
-This token is used to authenticate the user in the other services. The token is sent in the Authorization header in the format `Bearer <token>`. The gateway service will validate the token and route the request to the corresponding service.
+This token is used to authenticate the user in the other services. The token is sent in the Authorization header in the format
+`Bearer <token>`. The gateway service will validate the token and route the request to the corresponding service.
 
 ### Communication between services
 
-In this implementation the communication between services is done using REST API calls. To achieve this, a complementary library is used to handle communication easily, [`spring-cloud-starter-openfeign`](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html). It's a declarative HTTP client that simplifies the interaction between services.
+In this implementation the communication between services is done using REST API calls. To achieve this, a complementary library is used to handle communication easily, [
+`spring-cloud-starter-openfeign`](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html). It's a declarative HTTP client that simplifies the interaction between services.
 
 ## Tech debt
 
