@@ -293,3 +293,10 @@ No ejecutado — gateway no arrancó (puerto 8080 no disponible).
 - ✅ **Migración completa** — todos los servicios compilados y funcionando con Java 25 / Spring Boot 4.0.5 / Spring Cloud 2025.1.1 / Gradle 8.14
 - El flujo completo register → login → endpoint privado con JWT funciona end-to-end
 - Riesgos pendientes: **ninguno** en el path crítico
+
+### Post-migración — Zipkin JAR removido del repositorio ✅
+- Fecha: 2026-03-30
+- JAR eliminado del tracking de git: zipkin/*.jar
+- Scripts creados: zipkin/download.sh, zipkin/start.sh
+- Versión por defecto configurada: 3.5.1
+- .gitignore actualizado para excluir zipkin/*.jar

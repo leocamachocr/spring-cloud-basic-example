@@ -66,6 +66,7 @@ target/
 !**/gradle-wrapper.jar
 
 **/.gradle/
-!zipkin/*.jar
+# Zipkin — descargado por zipkin/download.sh, no commitear
+zipkin/*.jar
 .env
 /.claude/settings.local.json
