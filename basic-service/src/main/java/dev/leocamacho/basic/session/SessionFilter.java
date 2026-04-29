@@ -2,6 +2,8 @@ package dev.leocamacho.basic.session;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,20 +18,21 @@ public class SessionFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
-        var id = httpRequest.getHeader("id");
-        var email = httpRequest.getHeader("email");
-        var roles = httpRequest.getHeader("roles");
-        var correlationId = httpRequest.getHeader("correlationId");
-        SessionContextHolder.setSession(Session.newBuilder()
-                .withId(id)
-                .withCorrelationId(correlationId)
-                .withEmail(email)
-                .withRoles(roles)
-                .build());
-
-        filterChain.doFilter(servletRequest, servletResponse);
-
-        SessionContextHolder.clearSession();
+        Session session = Session.newBuilder()
+                .withId(httpRequest.getHeader("id"))
+                .withCorrelationId(httpRequest.getHeader("correlationId"))
+                .withEmail(httpRequest.getHeader("email"))
+                .withRoles(httpRequest.getHeader("roles"))
+                .build();
+        SessionContextHolder.setSession(session);
+        MDC.put("correlationId", session.correlationId().toString());
+        ((HttpServletResponse) servletResponse).setHeader("correlationId", session.correlationId().toString());
+        try {
+            filterChain.doFilter(servletRequest, servletResponse);
+        } finally {
+            MDC.remove("correlationId");
+            SessionContextHolder.clearSession();
+        }
     }
 
     @Override

@@ -31,7 +31,7 @@ logging:
     org.springframework.web: INFO
     org.hibernate: ERROR
   pattern:
-    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{correlationId:-}]"
 management:
   endpoint:
     health:

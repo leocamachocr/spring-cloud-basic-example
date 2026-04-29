@@ -64,8 +64,8 @@ public record Session(
         }
 
         public Session buildAnonymous() {
-            return new Session(null, "Anonymous", Collections.emptyList(), false, correlationId);
-
+            return new Session(null, "Anonymous", Collections.emptyList(), false,
+                    correlationId != null ? correlationId : UUID.randomUUID());
         }
 
         public Session build() {
@@ -73,7 +73,9 @@ public record Session(
                 return buildAnonymous();
             }
             validateBasics();
-
+            if (correlationId == null) {
+                correlationId = UUID.randomUUID();
+            }
             return new Session(id, email, roles, true, correlationId);
         }
 
