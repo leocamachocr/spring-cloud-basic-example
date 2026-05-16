@@ -46,7 +46,12 @@
       "Bash(git check-ignore:*)",
       "Bash(bash zipkin/download.sh)",
       "Bash(cat)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(Get-ChildItem -Path \"C:\\\\source-code\\\\git-personal\\\\spring-cloud-basic-example\" -Recurse -Depth 3)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\source-code\\\\git-personal\\\\spring-cloud-basic-example\" -Depth 1 | Where-Object { $_.Name -match \"docker|compose\" })"
     ]
   }
 }
