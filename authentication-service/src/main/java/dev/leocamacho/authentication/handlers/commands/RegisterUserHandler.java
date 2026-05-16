@@ -4,6 +4,8 @@ import dev.leocamacho.authentication.exceptions.BusinessException;
 import dev.leocamacho.authentication.exceptions.InvalidInputException;
 import dev.leocamacho.authentication.jpa.entities.UserEntity;
 import dev.leocamacho.authentication.jpa.repositories.UserRepository;
+import dev.leocamacho.authentication.messaging.events.UserCreatedEvent;
+import dev.leocamacho.authentication.messaging.publishers.UserCreatedEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,8 @@ public class RegisterUserHandler {
     private UserRepository repository;
     @Autowired
     private PasswordEncoder encoder;
+    @Autowired
+    private UserCreatedEventPublisher userCreatedEventPublisher;
 
     public record Command(String email, String name, String password) {
     }
@@ -28,7 +32,8 @@ public class RegisterUserHandler {
         user.setName(command.name());
         user.setPassword(encoder.encode(command.password()));
         user.setRoles(List.of("ACCOUNT_MANAGER"));
-        repository.save(user);
+        UserEntity saved = repository.save(user);
+        userCreatedEventPublisher.publish(UserCreatedEvent.of(saved.getId(), saved.getEmail(), saved.getName()));
     }
 
     private void validateExistingUser(String email) {
